@@ -1,0 +1,80 @@
+import { BASE_URL, OBJECT_MAPPER } from "./util";
+
+import { JsonProperty } from "jackson-js";
+import axios from "axios";
+
+export class Channel {
+  @JsonProperty()
+  name: string = "";
+
+  @JsonProperty()
+  id: string = "";
+
+  @JsonProperty()
+  topic: string = "";
+
+  @JsonProperty()
+  position: number = 0;
+
+  @JsonProperty()
+  nsfw: boolean = false;
+
+  @JsonProperty({ value: "parent_id" })
+  parentId: string = "";
+
+  @JsonProperty()
+  type: number = 0;
+
+  @JsonProperty()
+  flags: number = 0;
+
+  @JsonProperty({ value: "last_message_id" })
+  lastMessageId: number = 0;
+
+  @JsonProperty({ value: "rate_limit_per_user" })
+  rateLimitPerUser: number = 0;
+
+  @JsonProperty({ value: "guild_id" })
+  guildId: string = "";
+
+  @JsonProperty({ value: "permission_overwrites" })
+  permissionOverwrites: [string] = [""];
+
+  public constructor();
+  public constructor(channelId: string);
+
+  constructor(channelId?: string) {
+    if (channelId) {
+      this.id = channelId;
+    }
+  }
+
+  async initialize() {
+    if (!this.id) {
+      throw new Error("unable to infer id, as it hasn't been set!");
+    }
+
+    let response = await axios.get(`${BASE_URL}/channels/${this.id}`);
+    let json = response.data;
+
+    this.fromJSON(json);
+  }
+
+  async sendMessage(content: string) {
+    try {
+      await axios.post(`${BASE_URL}/channels/${this.id}/messages`, {
+        content,
+      });
+    } catch (error) {
+    }
+  }
+
+  fromJSON(json: any) {
+    Object.assign(
+      this,
+      OBJECT_MAPPER.parse<Channel>(JSON.stringify(json), {
+        mainCreator: () => [Channel],
+      }),
+    );
+  }
+}
