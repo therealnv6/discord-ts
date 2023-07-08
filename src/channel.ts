@@ -1,7 +1,6 @@
-import { BASE_URL, OBJECT_MAPPER } from "./util";
-
+import { OBJECT_MAPPER } from "./util";
 import { JsonProperty } from "jackson-js";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 export class Channel {
   @JsonProperty()
@@ -49,24 +48,21 @@ export class Channel {
     }
   }
 
-  async initialize() {
+  async fetch() {
     if (!this.id) {
       throw new Error("unable to infer id, as it hasn't been set!");
     }
 
-    let response = await axios.get(`${BASE_URL}/channels/${this.id}`);
+    let response = await axios.get(`/channels/${this.id}`);
     let json = response.data;
 
     this.fromJSON(json);
   }
 
-  async sendMessage(content: string) {
-    try {
-      await axios.post(`${BASE_URL}/channels/${this.id}/messages`, {
-        content,
-      });
-    } catch (error) {
-    }
+  async sendMessage(content: string): Promise<AxiosResponse> {
+    return axios.post(`/channels/${this.id}/messages`, {
+      content,
+    });
   }
 
   fromJSON(json: any) {
